@@ -20,8 +20,8 @@ q_func       = util.QTable(state_space,num_actions)
 agent_q      = Agent_Q(env,q_func)
 cur_state    = env.reset(random_placement=True)
 #training
-iterations = 100
-max_steps  = 500
+iterations = 10000
+max_steps  = 1000
 epsilon, gamma, alpha = util.learning_parameters()
 report_freq = iterations/20
 hist = np.zeros((iterations,5)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps
