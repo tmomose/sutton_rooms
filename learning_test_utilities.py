@@ -15,7 +15,7 @@ from room_world import *
 def learning_parameters():
     epsilon = 0.2
     gamma = 0.9
-    alpha = 0.05
+    alpha = 1./8. # matching Sutton
     return epsilon, gamma, alpha
 
 class QTable():
@@ -165,14 +165,15 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
     test_env.add_agent(agent)
     #steps = 0
     ret = 0.
+    steps = 0.
     try: # Planning Agent
         for i in range(evals):
             initial_state = test_env.reset(random_placement=True)
             _ = agent.make_plan(initial_state)
             states, actions, rewards, done = test_env.step_plan(agent.sebango)
             ret += discounted_return(rewards,gamma) #np.sum([np.sum([r for r in rewards if not r==[None]])])
-            #steps += np.sum([len(s) for s in states if not s==[None]])
-    except(AttributeError):
+            steps += np.sum([len(s) for s in states])
+    except(AttributeError): #s-MDP Agent
         try:
             for _ in range(evals):
                 prev_state = test_env.reset(random_placement=True)
@@ -183,10 +184,11 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
                     states, actions, rewards, done = test_env.step_option(option)
                     reward_record.append(rewards) # ret += np.sum(rewards)
                     prev_state = states[-1]
+                    steps += len(states)
                     if done:
-                        ret += discounted_return(reward_record,gamma)
                         break
-        except(AttributeError):
+                ret += discounted_return(reward_record,gamma)
+        except(AttributeError): # Flat Q-learning Agent
             for i in range(evals):
                 prev_state = test_env.reset(random_placement=True)
                 reward_record = []
@@ -196,11 +198,12 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
                     state, reward, done = test_env.step(action)
                     reward_record.append(reward) # ret += reward
                     prev_state = state
+                    steps += 1
                     if done:
-                        ret += discounted_return(reward_record,gamma)
                         break
+                ret += discounted_return(reward_record,gamma)
     finally:
-        return ret / evals
+        return (ret/evals, steps/evals)
     
 #def test_agent(agent,step_limit=2):
 #    test_env = RoomWorld()
@@ -256,10 +259,18 @@ def plot_greedy_policy(q_func,walkability,action_directions=np.array([[1,0],[0,1
 def timeStamped(fname, fmt='%Y%m%d-%H%M_{fname}'):
     return datetime.datetime.now().strftime(fmt).format(fname=fname)
 
-def final_plots(env,ag,hist):
-    plt.plot(hist[:,0],hist[:,1]); plt.show()
-    plt.plot(hist[:,0],hist[:,2]); plt.show()
-    plt.plot(hist[:,0],hist[:,3]); plt.show()
+def final_plots(env,ag,hist,avg_period=100):
+    avg_hist = np.zeros((hist.shape[0]-avg_period,hist.shape[1]))
+    for i in range(avg_hist.shape[0]):
+        avg_hist[i,:] = np.mean(hist[i:i+avg_period,:],axis=1)
+    print("Plot update amount") 
+    plt.plot(hist[:,0],hist[:,1],avg_hist[:,0],avg_hist[:,1]); plt.show()
+    print("Plot training return")
+    plt.plot(hist[:,0],hist[:,2],avg_hist[:,0],avg_hist[:,2]); plt.show()
+    print("Plot test return")
+    plt.plot(hist[:,0],hist[:,3],avg_hist[:,0],avg_hist[:,3]); plt.show()
+    print("Plot test steps")
+    plt.plot(hist[:,0],hist[:,4],avg_hist[:,0],avg_hist[:,4]); plt.show()
     Q,G,D = plot_greedy_policy(ag.q_func, env.walkability_map)
     return Q
 

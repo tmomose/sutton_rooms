@@ -13,7 +13,7 @@ from room_world import RoomWorld, SmdpAgent_Q
 import learning_test_utilities as util
 
 
-iterations=1000
+iterations=100
 
 #setup
 env          = RoomWorld()
@@ -28,7 +28,7 @@ max_options = 5
 gamma = 0.9
 alpha = 0.05
 report_freq = iterations/20
-hist = np.zeros((iterations,4)) #primitive step, avg_td, avg_ret, avg_greedy_ret
+hist = np.zeros((iterations,5)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps
 start_time = time.time()
 
 for itr in range(iterations):
@@ -54,7 +54,8 @@ for itr in range(iterations):
             break
     prev_steps = hist[itr-1,0]
     ret = util.discounted_return(reward_record,gamma)
-    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), util.greedy_eval(agent_smdp,gamma,max_options,10)])
+    greedy_ret, greedy_steps = util.greedy_eval(agent_smdp,gamma,max_options,10)
+    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), greedy_ret, greedy_steps])
     
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))

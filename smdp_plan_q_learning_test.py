@@ -24,7 +24,7 @@ agent_plan   = SmdpPlanningAgent_Q(env,q_func,options,plan_length=plan_length)
 #training
 epsilon, gamma, alpha = util.learning_parameters()
 report_freq = iterations/20
-hist = np.zeros((iterations,4)) #primitive step, avg_td, avg_ret, avg_greedy_ret
+hist = np.zeros((iterations,5)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps
 start_time = time.time()
 
 for itr in range(iterations):
@@ -45,9 +45,10 @@ for itr in range(iterations):
     tdes    = util.q_learning_update_plan_options(gamma, alpha, \
                                 agent_plan.q_func.table, states[0], \
                                 rewards2, option_index)
-    avg_td  = np.sum(tdes)
+    tot_td  = np.sum(tdes)
     prev_steps = hist[itr-1,0]
-    hist[itr,:] = np.array([prev_steps+steps, avg_td/(steps), ret/(steps), util.greedy_eval(agent_plan,gamma,1,10)])
+    greedy_ret, greedy_steps = util.greedy_eval(agent_plan,gamma,1,10)
+    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), greedy_ret, greedy_steps])
     
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))

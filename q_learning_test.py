@@ -26,7 +26,7 @@ iterations = 100
 max_steps  = 500
 epsilon, gamma, alpha = util.learning_parameters()
 report_freq = iterations/20
-hist = np.zeros((iterations,4)) #primitive step, avg_td, avg_ret, avg_greedy_ret
+hist = np.zeros((iterations,5)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps
 start_time = time.time()
 
 for itr in range(iterations):
@@ -46,7 +46,8 @@ for itr in range(iterations):
         cur_state = next_state
     # record results for this iteration
     prev_steps = hist[itr-1,0]
-    hist[itr,:] = np.array([prev_steps+stp, tot_td/(stp), util.discounted_return(rewards,gamma)/stp, util.greedy_eval(agent_q,gamma,max_steps,10)])
+    greedy_ret, greedy_steps = util.greedy_eval(agent_q,gamma,max_steps,10)
+    hist[itr,:] = np.array([prev_steps+stp, tot_td/(stp), util.discounted_return(rewards,gamma)/stp, greedy_ret, greedy_steps])
     
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))
