@@ -285,7 +285,7 @@ def pickle_results(obj, fname):
         return "NOT SAVED"
     else:
         with open(fname,"wb") as f:
-            pkl.dump(obj,f)
+            pkl.dump(obj,f,protocol=2)
         return fname
     
 def plot_and_pickle(env,ag,hist):
@@ -299,3 +299,4 @@ def plot_and_pickle(env,ag,hist):
     filename = timeStamped("qfunc.pkl")
     saved    = pickle_results(Q,filename)
     print("  --Q-function ndarray saved: {}".format(saved))
+
