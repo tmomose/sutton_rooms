@@ -13,7 +13,7 @@ from room_world import RoomWorld, SmdpAgent_Q
 import learning_test_utilities as util
 
 
-iterations=100
+iterations=10000
 
 #setup
 env          = RoomWorld()
@@ -25,8 +25,8 @@ agent_smdp   = SmdpAgent_Q(env,q_func,options)
 
 #training
 max_options = 5
-gamma = 0.9
-alpha = 0.05
+epsilon, gamma, alpha = util.learning_parameters()
+alpha       = 1./16. # overwrite to match Sutton
 report_freq = iterations/20
 hist = np.zeros((iterations,5)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps
 start_time = time.time()

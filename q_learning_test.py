@@ -19,9 +19,7 @@ num_actions  = env.action_space.size
 q_func       = util.QTable(state_space,num_actions)
 agent_q      = Agent_Q(env,q_func)
 cur_state    = env.reset(random_placement=True)
-#print(obs)
-#action       = agent_q.random_action()
-#obs, r, done = env.step(action)
+#training
 iterations = 100
 max_steps  = 500
 epsilon, gamma, alpha = util.learning_parameters()

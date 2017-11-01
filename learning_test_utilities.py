@@ -13,9 +13,11 @@ import matplotlib.pyplot as plt
 from room_world import *
 
 def learning_parameters():
-    epsilon = 0.2
+    epsilon = 0.1 # matching Sutton's 0.1
     gamma = 0.9
-    alpha = 1./8. # matching Sutton
+    alpha = 1./8. # matching Sutton's 1/8 (except for hallway options and 
+                  # hallway goal (alpha=1/16) and hallway+primitive options 
+                  # and room gaol (alpha=1/4))
     return epsilon, gamma, alpha
 
 class QTable():
@@ -262,7 +264,7 @@ def timeStamped(fname, fmt='%Y%m%d-%H%M_{fname}'):
 def final_plots(env,ag,hist,avg_period=100):
     avg_hist = np.zeros((hist.shape[0]-avg_period,hist.shape[1]))
     for i in range(avg_hist.shape[0]):
-        avg_hist[i,:] = np.mean(hist[i:i+avg_period,:],axis=1)
+        avg_hist[i,:] = np.mean(hist[i:i+avg_period,:],axis=0)
     print("Plot update amount") 
     plt.plot(hist[:,0],hist[:,1],avg_hist[:,0],avg_hist[:,1]); plt.show()
     print("Plot training return")
@@ -271,8 +273,11 @@ def final_plots(env,ag,hist,avg_period=100):
     plt.plot(hist[:,0],hist[:,3],avg_hist[:,0],avg_hist[:,3]); plt.show()
     print("Plot test steps")
     plt.plot(hist[:,0],hist[:,4],avg_hist[:,0],avg_hist[:,4]); plt.show()
-    Q,G,D = plot_greedy_policy(ag.q_func, env.walkability_map)
-    return Q
+    try:
+        Q,G,D = plot_greedy_policy(ag.q_func, env.walkability_map)
+        return Q
+    except IndexError:
+        print("WARNING: cannot plot policy quiverplot for more than 4 actions. Skipping.")
 
 def pickle_results(obj, fname):    
     if os.path.isfile(fname):

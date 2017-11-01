@@ -23,9 +23,10 @@ options      = util.create_hallway_options(env)
 agent_plan   = SmdpPlanningAgent_Q(env,q_func,options,plan_length=plan_length)  
 #training
 epsilon, gamma, alpha = util.learning_parameters()
+alpha       = 1./16. # overwrite to match Sutton
 report_freq = iterations/20
-hist = np.zeros((iterations,5)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps
-start_time = time.time()
+hist        = np.zeros((iterations,5)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps
+start_time  = time.time()
 
 for itr in range(iterations):
     initial_state = env.reset(random_placement=True)
