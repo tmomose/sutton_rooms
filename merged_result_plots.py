@@ -4,21 +4,28 @@ import pickle as pkl
 import matplotlib.pyplot as plt
 
 # unpickle
-with open("20171102-1351_training-history(plan).pkl","rb") as f:
+with open("/home/tmomose/SuttonRoomData/20171102/20171102-1748_training-history(plan2).pkl","rb") as f:
     ph = pkl.load(f)
-with open("20171102-1323_training-history(options).pkl","rb") as f:
+with open("/home/tmomose/SuttonRoomData/20171102/20171102-1649_training-history(options2).pkl","rb") as f:
     sh = pkl.load(f)
-with open("20171102-1326_training-history(flat).pkl","rb") as f:
-    qh = pkl.load(f)
+with open("/home/tmomose/SuttonRoomData/20171102/20171102-1326_training-history(flat).pkl","rb") as f:
+    qh_raw = pkl.load(f)
+# older flat q histories might not have the choices line and need reordering
+qh = np.zeros(ph.shape)
+if qh_raw.shape[1] == 6:
+    qh[:,:4] = qh_raw[:,:4]
+    qh[:,4]  = qh_raw[:,5]
+    qh[:,5]  = qh_raw[:,4]
+    qh[:,6]  = qh_raw[:,4] # steps and choices are same for flat q
 
 # x-axis array setup
 e = np.arange(qh.shape[0])    # episode x-axis
 d = np.arange(qh.shape[0]-10)+5 # episode x-axis for 10-episode averages
 
 # compute 10-episode averages
-pd = np.zeros((len(d),6))
-sd = np.zeros((len(d),6))
-qd = np.zeros((len(d),6))
+pd = np.zeros((len(d),7))
+sd = np.zeros((len(d),7))
+qd = np.zeros((len(d),7))
 for i in range(len(d)):
     pd[i,:] = np.mean(ph[i:i+10,:],axis=0)
     sd[i,:] = np.mean(sh[i:i+10,:],axis=0)
