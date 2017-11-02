@@ -13,12 +13,13 @@ import matplotlib.pyplot as plt
 from room_world import *
 
 def learning_parameters():
+    iterations = 100000
     epsilon = 0.1 # matching Sutton's 0.1
     gamma = 0.9
-    alpha = 1./8. # matching Sutton's 1/8 (except for hallway options and 
+    alpha = 1./16. # Sutton: 1/8 (except for hallway options and 
                   # hallway goal (alpha=1/16) and hallway+primitive options 
                   # and room gaol (alpha=1/4))
-    return epsilon, gamma, alpha
+    return iterations, epsilon, gamma, alpha
 
 class QTable():
     """Class for storing q-values in a table.
@@ -168,6 +169,7 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
     #steps = 0
     ret = 0.
     steps = 0.
+    successes = 0.
     try: # Planning Agent
         for i in range(evals):
             initial_state = test_env.reset(random_placement=True)
@@ -175,6 +177,8 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
             states, actions, rewards, done = test_env.step_plan(agent.sebango)
             ret += discounted_return(rewards,gamma) #np.sum([np.sum([r for r in rewards if not r==[None]])])
             steps += np.sum([len(s) for s in states])
+            if done:
+                successes += 1.
     except(AttributeError): #s-MDP Agent
         try:
             for _ in range(evals):
@@ -188,6 +192,7 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
                     prev_state = states[-1]
                     steps += len(states)
                     if done:
+                        successes += 1.
                         break
                 ret += discounted_return(reward_record,gamma)
         except(AttributeError): # Flat Q-learning Agent
@@ -202,10 +207,11 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
                     prev_state = state
                     steps += 1
                     if done:
+                        successes += 1.
                         break
                 ret += discounted_return(reward_record,gamma)
     finally:
-        return (ret/evals, steps/evals)
+        return (ret/evals, steps/evals, successes/evals)
     
 #def test_agent(agent,step_limit=2):
 #    test_env = RoomWorld()

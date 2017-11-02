@@ -13,8 +13,6 @@ from room_world import RoomWorld, SmdpAgent_Q
 import learning_test_utilities as util
 
 
-iterations=10000
-
 #setup
 env          = RoomWorld()
 state_space  = env.state_space
@@ -24,11 +22,11 @@ options      = util.create_hallway_options(env)
 agent_smdp   = SmdpAgent_Q(env,q_func,options)
 
 #training
-max_options = 5
-epsilon, gamma, alpha = util.learning_parameters()
-alpha       = 1./16. # overwrite to match Sutton
-report_freq = iterations/20
-hist = np.zeros((iterations,5)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps
+max_options = 200
+iterations, epsilon, gamma, alpha = util.learning_parameters()
+#alpha       = 1./16. # overwrite to match Sutton
+report_freq = iterations/50
+hist = np.zeros((iterations,6)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps, avg_greedy_successrate
 start_time = time.time()
 
 for itr in range(iterations):
@@ -54,10 +52,11 @@ for itr in range(iterations):
             break
     prev_steps = hist[itr-1,0]
     ret = util.discounted_return(reward_record,gamma)
-    greedy_ret, greedy_steps = util.greedy_eval(agent_smdp,gamma,max_options,10)
-    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), greedy_ret, greedy_steps])
+    greedy_ret, greedy_steps, greedy_success = util.greedy_eval(agent_smdp,gamma,max_options,100)
+    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), greedy_ret, greedy_steps, greedy_success])
     
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))
 
 print("DONE. ({} seconds elapsed)".format(time.time()-start_time))
+util.plot_and_pickle(env,agent_smdp,hist)
