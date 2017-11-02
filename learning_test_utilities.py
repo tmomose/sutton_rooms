@@ -322,3 +322,21 @@ def plot_and_pickle(env,ag,hist):
     saved    = pickle_results(Q,filename)
     print("  --Q-function ndarray saved: {}".format(saved))
 
+
+def plot_room(env):
+    wm = env.walkability_map
+    plt.imshow(-wm,cmap="Greys")
+    ax = plt.gca();
+    ax = plt.gca();
+    # Major ticks
+    ax.set_xticks(np.arange(0, wm.shape[1], 1));
+    ax.set_yticks(np.arange(0, wm.shape[0], 1));
+    # Labels for major ticks
+    ax.set_xticklabels(np.arange(1, wm.shape[1]+1, 1));
+    ax.set_yticklabels(np.arange(1, wm.shape[0]+1, 1));
+    # Minor ticks
+    ax.set_xticks(np.arange(-.5, wm.shape[1], 1), minor=True);
+    ax.set_yticks(np.arange(-.5, wm.shape[0], 1), minor=True);
+    # Gridlines based on minor ticks
+    ax.grid(which='minor')
+    plt.show()
