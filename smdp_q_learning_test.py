@@ -26,7 +26,7 @@ max_options = 200
 iterations, epsilon, gamma, alpha = util.learning_parameters()
 #alpha       = 1./16. # overwrite to match Sutton
 report_freq = iterations/50
-hist = np.zeros((iterations,6)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps, avg_greedy_successrate
+hist = np.zeros((iterations,7)) #training step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_successrate, avg_greedy_steps, avg_greedy_choices
 start_time = time.time()
 
 for itr in range(iterations):
@@ -52,9 +52,9 @@ for itr in range(iterations):
             break
     prev_steps = hist[itr-1,0]
     ret = util.discounted_return(reward_record,gamma)
-    greedy_ret, greedy_steps, greedy_success = util.greedy_eval(agent_smdp,gamma,max_options,100)
-    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), greedy_ret, greedy_steps, greedy_success])
-    
+    greedy_steps, greedy_choices, greedy_ret, greedy_success = util.greedy_eval(agent_smdp,gamma,max_options,100)
+    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), greedy_ret, greedy_success, greedy_steps, greedy_choices])
+
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))
 

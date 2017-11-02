@@ -158,9 +158,10 @@ def q_learning_update_plan_options(gamma, alpha, q_vals, states, rewards, plan_o
     return td_errs
 
           
-def greedy_eval(agent, gamma, max_steps, evals=10):
+def greedy_eval(agent, gamma, max_steps, evals=100):
     """evaluate greedy policy w.r.t current q_vals
-       max_steps is used by smdp agent an q agent.
+       max_steps:
+        -> for (re)planning agent, it is the number of times the plan can be remade
         -> for smdp, it is the number of options that can be chosen.
         -> for q, it is the number of primitive actions that can be chosen.
     """
@@ -169,16 +170,25 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
     #steps = 0
     ret = 0.
     steps = 0.
+    choices = 0. # number of step, option, or plan choices, depending on type
     successes = 0.
     try: # Planning Agent
         for i in range(evals):
-            initial_state = test_env.reset(random_placement=True)
-            _ = agent.make_plan(initial_state)
-            states, actions, rewards, done = test_env.step_plan(agent.sebango)
-            ret += discounted_return(rewards,gamma) #np.sum([np.sum([r for r in rewards if not r==[None]])])
-            steps += np.sum([len(s) for s in states])
-            if done:
-                successes += 1.
+            prev_state = test_env.reset(random_placement=True)
+            done = [False]
+            reward_record = []
+            for s in range(max_steps):
+                _ = agent.make_plan(prev_state)
+                states, actions, rewards, done = test_env.step_plan(agent.sebango)
+                for r in rewards:
+                    reward_record.append(r)
+                steps += np.sum([len(s) for s in states])
+                choices += 1
+                prev_state = states[-1][-1]
+                if done[-1]:
+                    successes += 1.
+                    break
+            ret += discounted_return(reward_record,gamma)
     except(AttributeError): #s-MDP Agent
         try:
             for _ in range(evals):
@@ -191,6 +201,7 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
                     reward_record.append(rewards) # ret += np.sum(rewards)
                     prev_state = states[-1]
                     steps += len(states)
+                    choices += 1
                     if done:
                         successes += 1.
                         break
@@ -206,12 +217,13 @@ def greedy_eval(agent, gamma, max_steps, evals=10):
                     reward_record.append(reward) # ret += reward
                     prev_state = state
                     steps += 1
+                    choices += 1
                     if done:
                         successes += 1.
                         break
                 ret += discounted_return(reward_record,gamma)
     finally:
-        return (ret/evals, steps/evals, successes/evals)
+        return (steps/evals, choices/evals, ret/evals, successes/evals)
     
 #def test_agent(agent,step_limit=2):
 #    test_env = RoomWorld()
@@ -277,8 +289,12 @@ def final_plots(env,ag,hist,avg_period=100):
     plt.plot(hist[:,0],hist[:,2],avg_hist[:,0],avg_hist[:,2]); plt.show()
     print("Plot test return")
     plt.plot(hist[:,0],hist[:,3],avg_hist[:,0],avg_hist[:,3]); plt.show()
-    print("Plot test steps")
+    print("Plot test success rate")
     plt.plot(hist[:,0],hist[:,4],avg_hist[:,0],avg_hist[:,4]); plt.show()
+    print("Plot test steps")
+    plt.plot(hist[:,0],hist[:,5],avg_hist[:,0],avg_hist[:,5]); plt.show()
+    print("Plot test choices")
+    plt.plot(hist[:,0],hist[:,6],avg_hist[:,0],avg_hist[:,6]); plt.show()
     try:
         Q,G,D = plot_greedy_policy(ag.q_func, env.walkability_map)
         return Q
