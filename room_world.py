@@ -480,3 +480,15 @@ class Option():
         else:
             return False
     
+
+class Option_Q(Option):
+    """This type of option stores the policy as a Q-table instead of an action
+       lookup table. Use learning_test_utilities.QTable
+    """
+    
+    def act(self,state):
+        """Takes state (or observation) and returns action (argmax(Q)).
+        """
+        assert(not self.check_termination(state))
+        q_values = self.policy(state)
+        return np.argmax(q_values)
