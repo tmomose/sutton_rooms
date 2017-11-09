@@ -386,7 +386,7 @@ class Option():
         self.policy      = policy
         self.num_actions = num_actions
         self.activation  = np.array(valid_states) # activation conditions (states)
-        self.termination = np.array(termination_conditions) # (states)
+        self.termination = np.reshape(termination_conditions,(-1,2)) # (states)
     
     
     def act(self,state):
@@ -430,7 +430,11 @@ class Option_Q(Option):
     """This type of option stores the policy as a Q-table instead of an action
        lookup table. Use learning_test_utilities.QTable
     """
-    
+    def __init__(self, policy, valid_states, termination_conditions, num_actions=4, success_reward=1.0):
+        super().__init__(policy, valid_states, termination_conditions, num_actions=num_actions)
+        self.success_reward = success_reward
+        
+        
     def act(self,state):
         """Takes state (or observation) and returns action (argmax(Q)).
         """
