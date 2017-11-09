@@ -217,7 +217,6 @@ class RoomWorld():
 
 
 
-
 class Agent():
     """Base agent class for interacting with RoomWorld.
     """
@@ -234,7 +233,7 @@ class Agent():
         """Random action generator. State shape is (n_samples,i,j) where i,j
            are the rows and columns of a single observation.
         """
-        return np.random.randint(low=0, high=self.num_actions)#,size=(state.shape[0],1))
+        return np.random.randint(low=0, high=self.num_actions)
 
 
     def move(self, direction):
@@ -248,11 +247,6 @@ class Agent():
         ax1_change = ((direction+1) % 2) * (1 - direction)
         return np.array(self.get_position() + [ax0_change,ax1_change])
 
-
-#    def shape_state(self,state):
-#        obs_shape = self.environment.walkability_map.shape
-#        return state.reshape((-1,obs_shape[0],obs_shape[1]))
-    
     
     def set_position(self, new_pos):
         self.position = np.array(new_pos)
@@ -320,31 +314,6 @@ class SmdpAgent_Q(Agent_Q):
         return self.options[self.current_option]
 
 
-#    def greedy_action(self, state):
-#        """Returns greedy action according to policy over options. If the last
-#           option has terminated, chooses the next one greedily.
-#           First, checks if the option is at a termination state (in a hall).
-#        """
-#        if self.current_option:
-#            done = self.options[self.current_option].check_termination(state)
-#            if not done:
-#                return self.options[self.current_option].act(state)
-#        # This is reached if there is not a valid option already selected.
-#        self.pick_option_greedy_epsilon(state,eps=0.0)
-#        return self.options[self.current_option].act(state)
-        
-#    def epsilon_greedy_action(self,state,eps=0.1):
-#        if self.current_option:
-#            return self.greedy_action(state) # if option already selected, 
-#                                             # follow it to termination
-#        else:
-#            roll = np.random.random()
-#            if roll <= eps:
-#                
-#                return 
-#            else:
-#                return self.greedy_action(state)
-
 
 class SmdpPlanningAgent_Q(SmdpAgent_Q):
     """SmdpAgent_Q with a plan (option sequence) output rather than primitive
@@ -362,12 +331,6 @@ class SmdpPlanningAgent_Q(SmdpAgent_Q):
            options) to reach the goal. The plan is followed to completion 
            without re-evaluation (for now).
         """
-#        plan   = np.zeros(self.plan_length)
-#        q_vals = self.q_func(state)
-#        for i in range(self.plan_length):
-#            plan[i] = np.argmax(q_vals[i*self.plan_length:i*self.plan_length+self.plan_length])
-#        self.current_plan   = plan
-#        self.current_option = plan[0]
         return self.make_plan_epsilon_greedy(state,epsilon=0.)
     
     def make_plan_epsilon_greedy(self,state,epsilon=0.):
@@ -377,29 +340,14 @@ class SmdpPlanningAgent_Q(SmdpAgent_Q):
            For each part of the plan, a random option is chosen with 
            probability epsilon
         """
-        #valid_options = [i for i in np.arange(self.num_options**self.plan_length) if self.options[i].check_validity(state)]
-        #all_qs = self.q_func(state)
-        #stepwise_qs = np.unravel_index()
-        #valid_qs    = [all_qs[i] for i in valid_options]
         roll = np.random.random()
         if roll <= epsilon:
             max_q = np.random.choice(np.arange(self.num_options**self.plan_length))
             #self.current_option = np.random.choice(valid_options)
         else:
             max_q = np.argmax(self.q_func(state))
-            #self.current_option = valid_options[np.argmax(valid_qs)]
         plan = np.array(np.unravel_index(max_q,[self.num_options]*self.plan_length))
-#        plan = [self.current_option]
-#        for i in range(1,self.plan_length):
-#            termination_state = self.options[plan[-1]].termination
-#            valid_options = [i for i in np.arange(self.num_options) if self.options[i].check_validity(termination_state)]
-#            step_qs = all_qs[i*self.num_options:(i+1)*self.num_options]
-#            valid_qs = [step_qs[i] for i in valid_options]
-#            roll = np.random.random()
-#            if roll <= epsilon:
-#                plan.append(np.random.choice(valid_options))
-#            else:
-#                plan.append(valid_options[np.argmax(valid_qs)])
+
         self.current_plan   = plan
         self.current_option = plan[0]
         return plan
@@ -420,9 +368,6 @@ class SmdpPlanningAgent_Q(SmdpAgent_Q):
         return self.plan
     
 
-
-#SHOULD THE OPTIONS BE ALL HARD CODED, OR JUST A VERTICAL OPTION AND HORIZONTAL 
-#OPTION, COMPUTED ON THE FLY FOR WHATEVER ROOM THE AGENT IS IN????
 
 class Option():
     """Semi-MDP option class. Deterministic policy. Callable.
