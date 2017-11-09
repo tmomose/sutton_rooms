@@ -38,7 +38,12 @@ class QTable():
     def __call__(self,state):
         """Returns the set of q-values stored for the given state.
         """
-        return self.table[str(state)]
+        try:
+            qs = self.table[str(state)]
+        except KeyError:
+            qs = np.zeros(self.num_actions)
+            print("WARNING: KeyError in Q-function. Returning zeros.")
+        return qs
 
 
 def create_hallway_options(environment):
@@ -106,16 +111,15 @@ def create_hallway_qtables(environment,gamma,num_actions=4):
       determined by create_hallway_options()
     """
     nm          = environment.numbered_map
-    hall_coords = np.argwhere(nm==0)
     adjacent    = [[1,0],[-1,0],[0,1],[0,-1]] # down, up, right, left
     qtables     = []
-    goal_rew    = environment.goal_reward
-    goal_pos    = environment.goal_position
+    goal_rew = 1.0
     step_rew    = environment.step_reward
 
     options     = create_hallway_options(environment)
     for option in options:
         state_space = option.activation
+        goal_pos    = option.termination
         qfunc = QTable(state_space,num_actions)
         for s in state_space:
             # Q-value is called by q_func.table[str(s)][a], where:
@@ -129,7 +133,7 @@ def create_hallway_qtables(environment,gamma,num_actions=4):
             qfunc.table[str(s)]         = np.ones(num_actions) * best_ret*gamma
             qfunc.table[str(s)][greedy] = best_ret
 
-        qtables.append(Option_Q(qfunc, state_space, option.termination))
+        qtables.append(Option_Q(qfunc, state_space, option.termination, success_reward=goal_rew))
     return qtables
 
 def discounted_return(rewards,gamma):
@@ -146,7 +150,7 @@ def discounted_return(rewards,gamma):
     return discounted
 
 
-def q_learning_update(gamma, alpha, q_vals, cur_state, action, next_state, reward):
+def q_learning_update(gamma, alpha, qfunc, cur_state, action, next_state, reward):
     """
     Inputs:
         gamma: discount factor
@@ -159,12 +163,23 @@ def q_learning_update(gamma, alpha, q_vals, cur_state, action, next_state, rewar
     
     Performs in-place update of q_vals table to implement one step of Q-learning
     """
-    target = reward + gamma * np.max(q_vals[str(next_state)])
-    td_err = target-q_vals[str(cur_state)][action]
-    q_vals[str(cur_state)][action] = q_vals[str(cur_state)][action] + alpha * td_err
+    target = reward + gamma * np.max(qfunc(next_state))
+    td_err = target-qfunc(cur_state)[action]
+    qfunc.table[str(cur_state)][action] = qfunc(cur_state)[action] + alpha * td_err
     return td_err
 
-def q_learning_update_option_sequence(gamma, alpha, q_vals, states, rewards, option_index):
+def q_learning_update_intraoption(gamma, alpha, q_vals, states, rewards, actions):
+    """Does an update to the q-table of an option based on the list of states,
+       actions, and rewards obtained by following that option to termination.
+    """
+    td_errs = []
+    T = len(rewards)
+    for t in range(T):
+        td_errs.append(q_learning_update(gamma, alpha, q_vals, states[t], \
+            actions[t], states[t+1], rewards[t]))
+    return td_errs
+    
+def q_learning_update_option_sequence(gamma, alpha, qfunc, states, rewards, option_index):
     """Does an update like q_learning_update, but using a sequence of states,
        actions, and rewards obtained from following an option to termination.
        USED FOR SMDP Q-LEARNING WITHOUT PLAN
@@ -172,11 +187,11 @@ def q_learning_update_option_sequence(gamma, alpha, q_vals, states, rewards, opt
     td_errs = []
     T = len(rewards)
     for t in range(T):
-        td_errs.append(q_learning_update(gamma, alpha, q_vals, states[t], \
+        td_errs.append(q_learning_update(gamma, alpha, qfunc, states[t], \
             option_index, states[t+1], discounted_return(rewards[t:],gamma)))
     return td_errs
 
-def q_learning_update_plan_options(gamma, alpha, q_vals, states, rewards, plan_option_index):
+def q_learning_update_plan_options(gamma, alpha, qfunc, states, rewards, plan_option_index):
     """Does an update like q_learning_update, but using a sequence of states,
        actions, and rewards obtained from following an option to termination.
        USED FOR SMDP Q-LEARNING WITH PLAN
@@ -184,7 +199,7 @@ def q_learning_update_plan_options(gamma, alpha, q_vals, states, rewards, plan_o
     td_errs = []
     T = len(rewards)
     for t in range(T-1):
-        td_errs.append(q_learning_update(gamma, alpha, q_vals, states[t], \
+        td_errs.append(q_learning_update(gamma, alpha, qfunc, states[t], \
             plan_option_index, states[t+1], discounted_return(rewards[t:],gamma)))
     return td_errs
 
