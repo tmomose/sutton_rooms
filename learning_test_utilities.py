@@ -99,7 +99,38 @@ def create_hallway_options(environment):
 
         options.append(Option(policy, valid_states, c)) # c is termination st
     return options
-   
+
+def create_hallway_qtables(environment,gamma,num_actions=4):
+    """Makes Q-tables that give the expected return for reaching the goal in 
+      the minimum possible number of steps with preference to the action 
+      determined by create_hallway_options()
+    """
+    nm          = environment.numbered_map
+    hall_coords = np.argwhere(nm==0)
+    adjacent    = [[1,0],[-1,0],[0,1],[0,-1]] # down, up, right, left
+    qtables     = []
+    goal_rew    = environment.goal_reward
+    goal_pos    = environment.goal_position
+    step_rew    = environment.step_reward
+
+    options     = create_hallway_options(environment)
+    for option in options:
+        state_space = option.activation
+        qfunc = QTable(state_space,num_actions)
+        for s in state_space:
+            # Q-value is called by q_func.table[str(s)][a], where:
+            #   q_func is a QTable object
+            #   s is the agent position as an ndarray
+            #   a is the index of the action
+            greedy         = option.act(s)
+            manhattan_dist = np.sum(np.abs(goal_pos-s)) # min steps to goal
+            best_ret       = goal_rew*gamma**(manhattan_dist-1.) + \
+                             step_rew*np.sum([gamma**p for p in range(manhattan_dist)])
+            qfunc.table[str(s)]         = np.ones(num_actions) * best_ret*gamma
+            qfunc.table[str(s)][greedy] = best_ret
+
+        qtables.append(Option_Q(qfunc, state_space, option.termination))
+    return qtables
 
 def discounted_return(rewards,gamma):
     try:
