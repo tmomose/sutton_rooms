@@ -61,9 +61,10 @@ for i in range(3):
 for i in range(3):
     plt.loglog(d,hd[i][:,STP1],c=cd[i],label=lab[i],basex=10,basey=10)
 plt.grid()
-plt.legend()
-plt.xlabel("Training Episodes",fontsize="medium")
-plt.ylabel("Steps per Test Episode",fontsize="medium")
+plt.legend(fontsize="large")
+plt.tick_params(axis="both",which="major",labelsize="large")
+plt.xlabel("Training Episodes",fontsize="x-large")
+plt.ylabel("Steps per Test Episode",fontsize="x-large")
 plt.show()
 
 # plot choices per test episode vs. training episode
@@ -73,9 +74,10 @@ for i in range(3):
 for i in range(3):
     plt.loglog(d,hd[i][:,CHO1],c=cd[i],label=lab[i],basex=10,basey=10)
 plt.grid()
-plt.legend()
-plt.xlabel("Training Episodes",fontsize="medium")
-plt.ylabel("Choices per Test Episode",fontsize="medium")
+plt.legend(fontsize="large")
+plt.tick_params(axis="both",which="major",labelsize="large")
+plt.xlabel("Training Episodes",fontsize="x-large")
+plt.ylabel("Choices per Test Episode",fontsize="x-large")
 plt.show()
 
 # plot average test return (discounted) vs. training episode
@@ -85,9 +87,10 @@ for i in range(3):
 for i in range(3):
     plt.semilogx(d,hd[i][:,RET1],c=cd[i],label=lab[i])
 plt.grid()
-plt.legend()
-plt.xlabel("Training Episodes",fontsize="medium")
-plt.ylabel("Average Test Return",fontsize="medium")
+plt.legend(fontsize="large")
+plt.tick_params(axis="both",which="major",labelsize="large")
+plt.xlabel("Training Episodes",fontsize="x-large")
+plt.ylabel("Average Test Return",fontsize="x-large")
 plt.show()
 
 # plot success rate vs. training episode
@@ -97,9 +100,10 @@ for i in range(3):
 for i in range(3):
     plt.semilogx(d,hd[i][:,SUC1],c=cd[i],label=lab[i])
 plt.grid()
-plt.legend()
-plt.xlabel("Training Episodes",fontsize="medium")
-plt.ylabel("Test Success Rate",fontsize="medium")
+plt.legend(fontsize="large")
+plt.tick_params(axis="both",which="major",labelsize="large")
+plt.xlabel("Training Episodes",fontsize="x-large")
+plt.ylabel("Test Success Rate",fontsize="x-large")
 plt.show()
 
 # plot steps per test episode vs. training steps
@@ -109,9 +113,10 @@ for i in range(3):
 for i in range(3):
     plt.loglog(hd[i][:,STP0],hd[i][:,STP1],c=cd[i],label=lab[i],basex=10,basey=10)
 plt.grid()
-plt.legend()
-plt.xlabel("Training Steps",fontsize="medium")
-plt.ylabel("Steps per Test Episode",fontsize="medium")
+plt.legend(fontsize="large")
+plt.tick_params(axis="both",which="major",labelsize="large")
+plt.xlabel("Training Steps",fontsize="x-large")
+plt.ylabel("Steps per Test Episode",fontsize="x-large")
 plt.show()
 
 # plot choices per test episode vs. training steps
@@ -121,9 +126,10 @@ for i in range(3):
 for i in range(3):
     plt.loglog(hd[i][:,STP0],hd[i][:,CHO1],c=cd[i],label=lab[i],basex=10,basey=10)
 plt.grid()
-plt.legend()
-plt.xlabel("Training Steps",fontsize="medium")
-plt.ylabel("Choices per Test Episode",fontsize="medium")
+plt.legend(fontsize="large")
+plt.tick_params(axis="both",which="major",labelsize="large")
+plt.xlabel("Training Steps",fontsize="x-large")
+plt.ylabel("Choices per Test Episode",fontsize="x-large")
 plt.show()
 
 # plot average test return (discounted) vs. training steps
@@ -133,9 +139,10 @@ for i in range(3):
 for i in range(3):
     plt.semilogx(hd[i][:,STP0],hd[i][:,RET1],c=cd[i],label=lab[i])
 plt.grid()
-plt.legend()
-plt.xlabel("Training Steps",fontsize="medium")
-plt.ylabel("Average Test Return",fontsize="medium")
+plt.legend(fontsize="large")
+plt.tick_params(axis="both",which="major",labelsize="large")
+plt.xlabel("Training Steps",fontsize="x-large")
+plt.ylabel("Average Test Return",fontsize="x-large")
 plt.show()
 
 # plot success rate vs. training steps
@@ -145,8 +152,9 @@ for i in range(3):
 for i in range(3):
     plt.semilogx(hd[i][:,STP0],hd[i][:,SUC1],c=cd[i],label=lab[i])
 plt.grid()
-plt.legend()
-plt.xlabel("Training Steps",fontsize="medium")
-plt.ylabel("Test Success Rate",fontsize="medium")
+plt.legend(fontsize="large")
+plt.tick_params(axis="both",which="major",labelsize="large")
+plt.xlabel("Training Steps",fontsize="x-large")
+plt.ylabel("Test Success Rate",fontsize="x-large")
 plt.show()
 
