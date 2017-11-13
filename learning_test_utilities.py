@@ -42,7 +42,7 @@ class QTable():
             qs = self.table[str(state)]
         except KeyError:
             qs = np.zeros(self.num_actions)
-            print("WARNING: KeyError in Q-function. Returning zeros.")
+            #print("WARNING: KeyError in Q-function. Returning zeros.")
         return qs
 
 
@@ -271,23 +271,6 @@ def greedy_eval(agent, gamma, max_steps, evals=100):
     finally:
         return (steps/evals, choices/evals, ret/evals, successes/evals)
     
-#def test_agent(agent,step_limit=2):
-#    test_env = RoomWorld()
-#    test_env.add_agent(agent)
-#    actions = []
-#    states  = []
-#    rewards = []
-#    states.append(test_env.reset(random_placement=True))
-#    for i in range(step_limit):
-#        a = agent.greedy_action(states[i])
-#        st,r,done = test_env.step(a)
-#        actions.append(a)
-#        states.append(st)
-#        rewards.append(r)
-#        if done:
-#            break
-#    return np.array(states),np.array(actions),np.array(rewards)
-
 
 def arrayify_q(q_func,walkability):
     # Put the q-function into an array
