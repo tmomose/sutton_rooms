@@ -309,27 +309,29 @@ def timeStamped(fname, fmt='%Y%m%d-%H%M_{fname}'):
     return datetime.datetime.now().strftime(fmt).format(fname=fname)
 
 def final_plots(env,ag,hist,avg_period=100):
-    avg_hist = np.zeros((hist.shape[0]-avg_period,hist.shape[1]))
+    n_hist   = hist.shape[1]
+    avg_hist = np.zeros((hist.shape[0]-avg_period,n_hist))
     for i in range(avg_hist.shape[0]):
         avg_hist[i,:] = np.mean(hist[i:i+avg_period,:],axis=0)
-    print("Plot update amount") 
-    plt.plot(hist[:,0],hist[:,1],avg_hist[:,0],avg_hist[:,1]); plt.show()
-    print("Plot training return")
-    plt.plot(hist[:,0],hist[:,2],avg_hist[:,0],avg_hist[:,2]); plt.show()
-    print("Plot test return")
-    plt.plot(hist[:,0],hist[:,3],avg_hist[:,0],avg_hist[:,3]); plt.show()
-    print("Plot test success rate")
-    plt.plot(hist[:,0],hist[:,4],avg_hist[:,0],avg_hist[:,4]); plt.show()
-    print("Plot test steps")
-    plt.plot(hist[:,0],hist[:,5],avg_hist[:,0],avg_hist[:,5]); plt.show()
-    print("Plot test choices")
-    plt.plot(hist[:,0],hist[:,6],avg_hist[:,0],avg_hist[:,6]); plt.show()
+    # labels
+    if n_hist == 7:
+        labels = ["update amount","training return","test return",
+                 "test success rate","test steps","test choices"]
+    elif n_hist == 8:
+        labels = ["HLC update amount","LLC update amount","training return",
+                 "test return","test success rate","test steps","test choices"]
+    else:
+        print("invalid history size. plotting without labels")
+        labels = [" "]*(n_hist-1)
+    for i in range(n_hist):
+        print("Plot ".format(labels[i]))
+        plt.plot(hist[:,0],hist[:,i+1],avg_hist[:,0],avg_hist[:,i+1]); plt.show()
     try:
         Q,G,D = plot_greedy_policy(ag.q_func, env.walkability_map)
         return Q
     except IndexError:
         print("WARNING: cannot plot policy quiverplot for more than 4 actions. Skipping.")
-
+        
 def pickle_results(obj, fname):    
     if os.path.isfile(fname):
         print("File {} already exists. Please move to avoid data loss.".format(fname))
