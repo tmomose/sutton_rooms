@@ -42,7 +42,7 @@ for itr in range(iterations):
         states,actions,rewards,done = env.step_option(opt,agent_smdp.sebango)
         next_state = states[-1]
         tdes = util.q_learning_update_option_sequence(gamma, alpha, \
-                                    agent_smdp.q_func.table, states, \
+                                    agent_smdp.q_func, states, \
                                     rewards, opt.identifier)
         tot_td   += np.sum(tdes)
         reward_record.append(rewards)

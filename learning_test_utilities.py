@@ -155,7 +155,7 @@ def q_learning_update(gamma, alpha, qfunc, cur_state, action, next_state, reward
     Inputs:
         gamma: discount factor
         alpha: learning rate
-        q_vals: q value table
+        qfunc: q function (callable)
         cur_state: current state
         action: action taken opcurrent state
         next_state: next state results from taking `action` in `cur_state`
@@ -168,14 +168,14 @@ def q_learning_update(gamma, alpha, qfunc, cur_state, action, next_state, reward
     qfunc.table[str(cur_state)][action] = qfunc(cur_state)[action] + alpha * td_err
     return td_err
 
-def q_learning_update_intraoption(gamma, alpha, q_vals, states, rewards, actions):
+def q_learning_update_intraoption(gamma, alpha, qfunc, states, rewards, actions):
     """Does an update to the q-table of an option based on the list of states,
        actions, and rewards obtained by following that option to termination.
     """
     td_errs = []
     T = len(rewards)
     for t in range(T):
-        td_errs.append(q_learning_update(gamma, alpha, q_vals, states[t], \
+        td_errs.append(q_learning_update(gamma, alpha, qfunc, states[t], \
             actions[t], states[t+1], rewards[t]))
     return td_errs
     
