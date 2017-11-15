@@ -46,6 +46,7 @@ lab=["Flat RL","Standard HRL","Planning HRL"]
 ##  4 avg_test_successrate
 ##  5 avg_test_steps
 ##  6 avg_test_choices
+## (7 avg td for LLC policy)
 STP0=0
 TDE0=1
 RET0=2

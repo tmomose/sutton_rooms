@@ -318,8 +318,8 @@ def final_plots(env,ag,hist,avg_period=100):
         labels = ["update amount","training return","test return",
                  "test success rate","test steps","test choices"]
     elif n_hist == 8:
-        labels = ["HLC update amount","LLC update amount","training return",
-                 "test return","test success rate","test steps","test choices"]
+        labels = ["HLC update amount","training return","test return",
+                 "test success rate","test steps","test choices","LLC update amount"]
     else:
         print("invalid history size. plotting without labels")
         labels = [" "]*(n_hist-1)
