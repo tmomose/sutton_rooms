@@ -309,23 +309,35 @@ def timeStamped(fname, fmt='%Y%m%d-%H%M_{fname}'):
     return datetime.datetime.now().strftime(fmt).format(fname=fname)
 
 def final_plots(env,ag,hist,avg_period=100):
-    n_hist   = hist.shape[1]
-    avg_hist = np.zeros((hist.shape[0]-avg_period,n_hist))
+    l_hist, n_hist = hist.shape
+    if l_hist < avg_period:
+        avg_period = l_hist // 10
+        print("Averaging period was too long. Reset to {}".format(avg_period))
+    avg_hist       = np.zeros((l_hist-avg_period,n_hist))
     for i in range(avg_hist.shape[0]):
         avg_hist[i,:] = np.mean(hist[i:i+avg_period,:],axis=0)
     # labels
     if n_hist == 7:
-        labels = ["update amount","training return","test return",
-                 "test success rate","test steps","test choices"]
+        labels = ["Training Steps","Update Amount","Training Return","Test Return",
+                 "Test Success Rate","Test Steps","Test choices"]
     elif n_hist == 8:
-        labels = ["HLC update amount","training return","test return",
-                 "test success rate","test steps","test choices","LLC update amount"]
+        labels = ["Training Steps","HLC Update Amount","Training Return","Test Return",
+                 "Test Success Rate","Test Steps","Test Choices","LLC Update Amount"]
     else:
         print("invalid history size. plotting without labels")
-        labels = [" "]*(n_hist-1)
-    for i in range(n_hist):
-        print("Plot ".format(labels[i]))
-        plt.plot(hist[:,0],hist[:,i+1],avg_hist[:,0],avg_hist[:,i+1]); plt.show()
+        labels = [" "]*(n_hist)
+        
+    print("Plotting Results.")
+    fig,axes = plt.subplots(n_hist-1,1,sharex=True)
+    for i, ax in enumerate(axes):
+        ax.plot(hist[:,0],hist[:,i+1],avg_hist[:,0],avg_hist[:,i+1])
+        #ax.set_xticks(hist[:0])
+        #ax.set_xticklabels(hist[:0],fontsize=8)
+        ax.set_title(labels[i+1], fontsize=10)
+    ax.set_xlabel(labels[0],fontsize=10)
+    fig.tight_layout(pad=1.02,h_pad=0.0)
+    plt.show()
+    
     try:
         Q,G,D = plot_greedy_policy(ag.q_func, env.walkability_map)
         return Q
