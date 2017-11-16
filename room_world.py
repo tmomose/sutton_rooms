@@ -442,6 +442,7 @@ class Option_Q(Option):
     def act(self,state):
         """Takes state (or observation) and returns action (argmax(Q)).
         """
-        assert(not self.check_termination(state))
-        q_values = self.policy(state)
-        return np.argmax(q_values)
+        if self.check_termination(state):
+            return None
+        else:
+            return np.argmax(self.policy(state))

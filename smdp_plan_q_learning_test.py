@@ -23,7 +23,7 @@ agent_plan   = SmdpPlanningAgent_Q(env,q_func,options,plan_length=plan_length)
 #training
 iterations, epsilon, gamma, alpha = util.learning_parameters()
 report_freq = iterations/50
-hist        = np.zeros((iterations,6)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps, avg_greedy_successrate
+hist        = np.zeros((iterations,7)) #training step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_successrate, avg_greedy_steps, avg_greedy_choices
 start_time  = time.time()
 
 for itr in range(iterations):
@@ -42,12 +42,12 @@ for itr in range(iterations):
         
     # update q-table
     tdes    = util.q_learning_update_plan_options(gamma, alpha, \
-                                agent_plan.q_func.table, states[0], \
+                                agent_plan.q_func, states[0], \
                                 rewards2, option_index)
     tot_td  = np.sum(tdes)
     prev_steps = hist[itr-1,0]
-    greedy_ret, greedy_steps, greedy_success = util.greedy_eval(agent_plan,gamma,1,100)
-    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret, greedy_ret, greedy_steps, greedy_success])
+    greedy_steps, greedy_choices, greedy_ret, greedy_success = util.greedy_eval(agent_plan,gamma,1,100)
+    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret, greedy_ret, greedy_success, greedy_steps, greedy_choices])
     
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))

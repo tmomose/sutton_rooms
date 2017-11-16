@@ -25,6 +25,7 @@ agent_smdp   = SmdpAgent_Q(env,q_func,options)
 #training
 max_options = 200
 iterations, epsilon, gamma, alpha = util.learning_parameters()
+iterations=100
 #alpha       = 1./16. # overwrite to match Sutton
 report_freq = iterations/100
 hist = np.zeros((iterations,7)) #training step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_successrate, avg_greedy_steps, avg_greedy_choices

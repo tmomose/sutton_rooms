@@ -43,7 +43,7 @@ for itr in range(iterations):
             
         # update q-table
         tdes    = util.q_learning_update_plan_options(gamma, alpha, \
-                                    agent_plan.q_func.table, states[0], \
+                                    agent_plan.q_func, states[0], \
                                     rewards2, option_index)
         tot_tde += np.sum(tdes)
     prev_steps = hist[itr-1,0]

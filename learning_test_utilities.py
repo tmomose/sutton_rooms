@@ -349,7 +349,6 @@ def switching_greedy_eval(agent, gamma, max_options, evals=100):
     return (steps/evals, choices/evals, ret/evals, successes/evals)
 
 def arrayify_q(q_func,walkability):
-    print(isinstance(q_func.table, np.ndarray))
     if isinstance(q_func.table, np.ndarray):
         return q_func
     # Put the q-function into an array
@@ -362,11 +361,11 @@ def arrayify_q(q_func,walkability):
         Q[int(i),int(j)] = q_func.table[k]
     return Q
 
-def plot_greedy_policy(q_func,walkability,action_directions=np.array([[1,0],[0,1],[-1,0],[0,-1]])):
+def plot_greedy_policy(q_array,walkability,action_directions=np.array([[1,0],[0,1],[-1,0],[0,-1]])):
     # ASSUMES THAT q_func AND walkability HAVE THE SAME DIMENSIONS ALONG AXES
     # 0 AND 1!
     h,w = walkability.shape
-    Q = arrayify_q(q_func,walkability)
+    Q = q_array#ify_q(q_func,walkability)
     G = np.argmax(Q,axis=2)  # table of greedy action indices (i.e., policy lookup table)
     D = np.zeros((h,w,action_directions.shape[1])) # table of greedy direction
                                                    # of motion
@@ -387,7 +386,7 @@ def plot_greedy_policy(q_func,walkability,action_directions=np.array([[1,0],[0,1
 def timeStamped(fname, fmt='%Y%m%d-%H%M_{fname}'):
     return datetime.datetime.now().strftime(fmt).format(fname=fname)
 
-def final_plots(env,ag,hist,avg_period=100):
+def final_plots(walkability,q_array,hist,avg_period=100):
     l_hist, n_hist = hist.shape
     if l_hist < avg_period:
         avg_period = l_hist // 10
@@ -414,7 +413,7 @@ def final_plots(env,ag,hist,avg_period=100):
     plt.show()
     
     try:
-        Q,G,D = plot_greedy_policy(ag.q_func, env.walkability_map)
+        Q,G,D = plot_greedy_policy(q_array, walkability)
         return Q
     except IndexError:
         print("WARNING: cannot plot policy quiverplot for more than 4 actions. Skipping.")
@@ -429,16 +428,18 @@ def pickle_results(obj, fname):
         return fname
     
 def plot_and_pickle(env,ag,hist):
-    print("Plotting results")
-    Q = final_plots(env,ag,hist)
-    # save files with check inside pickle_results
+	# save files with check inside pickle_results
     print("Pickling data")
     filename = timeStamped("training-history.pkl")
     saved    = pickle_results(hist,filename)
     print("  --training history saved: {}".format(saved))
     filename = timeStamped("qfunc.pkl")
+    Q        = arrayify_q(ag.q_func,env.walkability_map)
     saved    = pickle_results(Q,filename)
     print("  --Q-function ndarray saved: {}".format(saved))
+	# Plot results
+    print("Plotting results")
+    final_plots(env.walkability_map,Q,hist)
 
 
 def plot_room(env):
