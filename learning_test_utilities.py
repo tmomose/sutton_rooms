@@ -270,7 +270,51 @@ def greedy_eval(agent, gamma, max_steps, evals=100):
                 ret += discounted_return(reward_record,gamma)
     finally:
         return (steps/evals, choices/evals, ret/evals, successes/evals)
-    
+
+def switching_greedy_eval(agent, gamma, max_options, evals=100):
+    """evaluate greedy policy w.r.t current q_vals with option interruption
+    """
+    test_env = RoomWorld()
+    test_env.add_agent(agent)
+    #steps = 0
+    ret = 0.
+    steps = 0.
+    choices = 0. # number of option or plan choices, depending on type
+    successes = 0.
+    for _ in range(evals):
+        prev_state = test_env.reset(random_placement=True)
+        reward_record = []
+        done = False
+        for s in range(max_options):
+            opt      = agent.pick_option_greedy_epsilon(prev_state, eps=0.0)
+            choices += 1.
+            rewards  = []
+            switch   = False
+            while not switch:
+                action = opt.act(prev_state)
+                steps += 1.
+                if action is None: # option was invalid or at terminal state
+                    switch = True
+                    if len(rewards)==0: # count bad option choice as idle step and give R=0.
+                        rewards.append(0.0)
+                    reward_record.append(rewards)
+                else: # option was valid
+                    prev_state, re, done = test_env.step(action,agent.sebango)
+                    rewards.append(re)
+                    if done: # episode is done, so time to leave the option loop
+                        switch = True
+                        reward_record.append(rewards)
+                    else: # if not done, decide whether or not to switch
+                        current_best_opt = agent.pick_option_greedy_epsilon(prev_state, eps=0.0)
+                        # TODO: Add a margin so it doesn't get too trigger happy?
+                        if current_best_opt!=opt:
+                            switch = True
+                            reward_record.append(rewards)
+            if done:
+                successes += 1.
+                break
+        ret += discounted_return(reward_record,gamma)
+    return (steps/evals, choices/evals, ret/evals, successes/evals)
 
 def arrayify_q(q_func,walkability):
     # Put the q-function into an array
@@ -326,13 +370,9 @@ def final_plots(env,ag,hist,avg_period=100):
     else:
         print("invalid history size. plotting without labels")
         labels = [" "]*(n_hist)
-        
-    print("Plotting Results.")
     fig,axes = plt.subplots(n_hist-1,1,sharex=True)
     for i, ax in enumerate(axes):
         ax.plot(hist[:,0],hist[:,i+1],avg_hist[:,0],avg_hist[:,i+1])
-        #ax.set_xticks(hist[:0])
-        #ax.set_xticklabels(hist[:0],fontsize=8)
         ax.set_title(labels[i+1], fontsize=10)
     ax.set_xlabel(labels[0],fontsize=10)
     fig.tight_layout(pad=1.02,h_pad=0.0)

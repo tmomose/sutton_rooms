@@ -44,7 +44,6 @@ for itr in range(iterations):
     tot_td = 0
     tot_tdo= 0
     cur_state = env.reset(random_placement=True)
-    epsilon = 0.2
     done = False
     reward_record = []
     steps = 0
@@ -77,7 +76,7 @@ for itr in range(iterations):
     prev_steps = hist[itr-1,0]
     ret = util.discounted_return(reward_record,gamma)
     greedy_steps, greedy_choices, greedy_ret, greedy_success = util.greedy_eval(agent_smdp,gamma,max_options,100)
-    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), greedy_ret, greedy_success, greedy_steps, greedy_choices, tot_tdo/(steps)])
+    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret, greedy_ret, greedy_success, greedy_steps, greedy_choices, tot_tdo/(steps)])
     last_success_rates = last_success_rates[1:]+[greedy_success]
     
     if itr % report_freq == 0: # evaluation

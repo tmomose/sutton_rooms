@@ -48,7 +48,7 @@ for itr in range(iterations):
         tot_tde += np.sum(tdes)
     prev_steps = hist[itr-1,0]
     greedy_steps, greedy_choices, greedy_ret, greedy_success = util.greedy_eval(agent_plan,gamma,max_plans,100)
-    hist[itr,:] = np.array([prev_steps+steps, tot_tde/(steps), ret/(steps), greedy_ret, greedy_success, greedy_steps, greedy_choices])
+    hist[itr,:] = np.array([prev_steps+steps, tot_tde/(steps), ret, greedy_ret, greedy_success, greedy_steps, greedy_choices])
     
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))

@@ -143,13 +143,13 @@ class RoomWorld():
         acts = []
         rew  = []
         done = False
-        i=0
-        while not option.check_termination(obs[-1]) and not done:
-            acts.append(option.act(obs[-1]))
-            ob, re, done = self.step(acts[-1],sebango)
-            rew.append(re)
-            obs.append(ob)
-            i+=1
+        while not done: # and not option.check_termination(obs[-1]):
+            action = option.act(obs[-1])
+            if action is not None: # option was valid
+                acts.append(action)
+                ob, re, done = self.step(acts[-1],sebango)
+                rew.append(re)
+                obs.append(ob)
         self.agents[sebango-2].current_option = None
         return obs, acts, rew, done
     
@@ -394,8 +394,10 @@ class Option():
            This simply reads the necessary action from self.policy
            The action is applied to the agent in the arguments
         """
-        assert(not self.check_termination(state))
-        return int(self.policy[tuple(state)])
+        if self.check_termination(state):
+            return None
+        else:
+            return int(self.policy[tuple(state)])
             
     
     def greedy_action(self,state):

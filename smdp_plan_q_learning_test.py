@@ -22,7 +22,6 @@ options      = util.create_hallway_options(env)
 agent_plan   = SmdpPlanningAgent_Q(env,q_func,options,plan_length=plan_length)  
 #training
 iterations, epsilon, gamma, alpha = util.learning_parameters()
-#alpha       = 1./16. # overwrite to match Sutton
 report_freq = iterations/50
 hist        = np.zeros((iterations,6)) #primitive step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_steps, avg_greedy_successrate
 start_time  = time.time()
@@ -48,7 +47,7 @@ for itr in range(iterations):
     tot_td  = np.sum(tdes)
     prev_steps = hist[itr-1,0]
     greedy_ret, greedy_steps, greedy_success = util.greedy_eval(agent_plan,gamma,1,100)
-    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), greedy_ret, greedy_steps, greedy_success])
+    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret, greedy_ret, greedy_steps, greedy_success])
     
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))

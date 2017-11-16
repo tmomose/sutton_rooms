@@ -25,40 +25,50 @@ agent_smdp   = SmdpAgent_Q(env,q_func,options)
 #training
 max_options = 200
 iterations, epsilon, gamma, alpha = util.learning_parameters()
-iterations=100
+iterations=10000
 #alpha       = 1./16. # overwrite to match Sutton
-report_freq = iterations/50
+report_freq = iterations/100
 hist = np.zeros((iterations,7)) #training step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_successrate, avg_greedy_steps, avg_greedy_choices
 start_time = time.time()
+
+interruptions = 0
 
 for itr in range(iterations):
     tot_td = 0
     cur_state = env.reset(random_placement=True)
-    epsilon = 0.2
     done = False
     reward_record = []
     steps = 0
     for _ in range(max_options):
         #epsilon = np.max([0.1,1.-itr/(iterations/2.)]) # linear epsilon-decay
-        opt  = agent_smdp.pick_option_greedy_epsilon(cur_state, eps=epsilon)
-        states  = [cur_state]
-        actions = []
-        rewards = []
-        done    = False
-        switch  = False
-        i       = 0
-        while not switch and not done:
-            actions.append(opt.act(states[-1]))
-            ob, re, done = env.step(actions[-1],agent_smdp.sebango)
-            rewards.append(re)
-            states.append(ob)
-            i+=1
-            current_best_opt = agent_smdp.pick_option_greedy_epsilon(states[-1], eps=epsilon)
-            # TODO: Add a margin so it doesn't get too trigger happy?
-            if current_best_opt!=opt or opt.check_termination(states[-1]):
+        opt      = agent_smdp.pick_option_greedy_epsilon(cur_state, eps=epsilon)
+        states   = [cur_state]
+        actions  = []
+        rewards  = []
+        switch   = False
+        while not switch:
+            action = opt.act(states[-1])
+            if action is None: # option was invalid or at terminal state
                 switch = True
+            else: # option was valid
+                actions.append(action)
+                ob, re, done = env.step(action,agent_smdp.sebango)
+                rewards.append(re)
+                states.append(ob)
+                if done: # episode is done, so time to leave the option loop
+                    switch = True
+                else: # if not done, decide whether or not to switch
+                    current_best_opt = agent_smdp.pick_option_greedy_epsilon(states[-1], eps=0.2)
+                    # TODO: Add a margin so it doesn't get too trigger happy?
+                    if current_best_opt!=opt:
+                        if itr > 50:
+                            interruptions += 1
+                            switch = True
         next_state = states[-1]
-        tdes = util.q_learning_update_option_sequence(gamma, alpha, \
+        if len(states)==1: # this happens if option was chosen in its termination state
+            tdes = [0.] # no update
+        else:
+            tdes = util.q_learning_update_option_sequence(gamma, alpha, \
                                     agent_smdp.q_func, states, \
                                     rewards, opt.identifier)
         tot_td   += np.sum(tdes)
@@ -69,11 +79,13 @@ for itr in range(iterations):
             break
     prev_steps = hist[itr-1,0]
     ret = util.discounted_return(reward_record,gamma)
-    greedy_steps, greedy_choices, greedy_ret, greedy_success = util.greedy_eval(agent_smdp,gamma,max_options,100)
-    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret/(steps), greedy_ret, greedy_success, greedy_steps, greedy_choices])
-
+    greedy_steps, greedy_choices, greedy_ret, greedy_success = util.switching_greedy_eval(agent_smdp,gamma,max_options,100)
+    hist[itr,:] = np.array([prev_steps+steps, tot_td/(steps), ret, greedy_ret, greedy_success, greedy_steps, greedy_choices])
+    
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))
+        print("  (interruptions in training: {})".format(interruptions))
+        interruptions = 0
 
 print("DONE. ({} seconds elapsed)".format(time.time()-start_time))
 util.plot_and_pickle(env,agent_smdp,hist)
