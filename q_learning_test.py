@@ -37,7 +37,7 @@ for itr in range(iterations):
         action  = agent_q.epsilon_greedy_action(cur_state,eps=epsilon)
         next_state, reward, done = env.step(action)
         rewards.append(reward)
-        tde     = util.q_learning_update(gamma, alpha, agent_q.q_func.table, cur_state, action, next_state, reward)
+        tde     = util.q_learning_update(gamma, alpha, agent_q.q_func, cur_state, action, next_state, reward)
         tot_td += tde
         stp += 1
         cur_state = next_state

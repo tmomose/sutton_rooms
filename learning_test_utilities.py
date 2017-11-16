@@ -18,7 +18,7 @@ def learning_parameters():
     gamma = 0.9
     alpha = 1./16. # Sutton: 1/8 (except for hallway options and 
                   # hallway goal (alpha=1/16) and hallway+primitive options 
-                  # and room gaol (alpha=1/4))
+                  # and room goal (alpha=1/4))
     return iterations, epsilon, gamma, alpha
 
 class QTable():
@@ -44,6 +44,38 @@ class QTable():
             qs = np.zeros(self.num_actions)
             #print("WARNING: KeyError in Q-function. Returning zeros.")
         return qs
+    
+    def update_table(self,state,q,action=None):
+        if action is None: # if no action is specified, q should be an array of length num_actions
+            assert(len(q)==self.num_actions)
+            self.table[str(state)] = q
+        else:
+            self.table[str(state)][action] = q
+    
+class QTable_Numpy():
+    """Class for storing q-values in a table.
+    """
+    def __init__(self,dimensions,num_actions):
+        self.num_actions = num_actions
+        self.dimensions = dimensions
+        self.table = np.zeros(dimensions+(num_actions,))
+            
+    def __call__(self,state):
+        """Returns the set of q-values stored for the given state.
+        """
+        try:
+            qs = self.table[tuple(state)]
+        except IndexError:
+            qs = np.zeros(self.num_actions)
+            print("WARNING: IndexError in Q-function. Returning zeros.")
+        return qs
+    
+    def update_table(self,state,q,action=None):
+        if action is None: # if no action is specified, q should be an array of length num_actions
+            assert(len(q)==self.num_actions)
+            self.table[tuple(state)] = q
+        else:
+            self.table[tuple(state)][action] = q
 
 
 def create_hallway_options(environment):
@@ -130,8 +162,8 @@ def create_hallway_qtables(environment,gamma,num_actions=4):
             manhattan_dist = np.sum(np.abs(goal_pos-s)) # min steps to goal
             best_ret       = goal_rew*gamma**(manhattan_dist-1.) + \
                              step_rew*np.sum([gamma**p for p in range(manhattan_dist)])
-            qfunc.table[str(s)]         = np.ones(num_actions) * best_ret*gamma
-            qfunc.table[str(s)][greedy] = best_ret
+            qfunc.update_table(s,np.ones(num_actions) * best_ret*gamma)#table[str(s)]         = np.ones(num_actions) * best_ret*gamma
+            qfunc.update_table(s,best_ret,greedy)#table[str(s)][greedy] = best_ret
 
         qtables.append(Option_Q(qfunc, state_space, option.termination, success_reward=goal_rew))
     return qtables
@@ -165,7 +197,7 @@ def q_learning_update(gamma, alpha, qfunc, cur_state, action, next_state, reward
     """
     target = reward + gamma * np.max(qfunc(next_state))
     td_err = target-qfunc(cur_state)[action]
-    qfunc.table[str(cur_state)][action] = qfunc(cur_state)[action] + alpha * td_err
+    qfunc.update_table(cur_state,qfunc(cur_state)[action] + alpha * td_err,action)#table[str(cur_state)][action] = qfunc(cur_state)[action] + alpha * td_err
     return td_err
 
 def q_learning_update_intraoption(gamma, alpha, qfunc, states, rewards, actions):
@@ -317,6 +349,9 @@ def switching_greedy_eval(agent, gamma, max_options, evals=100):
     return (steps/evals, choices/evals, ret/evals, successes/evals)
 
 def arrayify_q(q_func,walkability):
+    print(isinstance(q_func.table, np.ndarray))
+    if isinstance(q_func.table, np.ndarray):
+        return q_func
     # Put the q-function into an array
     h,w = walkability.shape
     Q = np.zeros((h,w,q_func.num_actions))
