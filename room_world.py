@@ -145,7 +145,9 @@ class RoomWorld():
         done = False
         while not done: # and not option.check_termination(obs[-1]):
             action = option.act(obs[-1])
-            if action is not None: # option was valid
+            if action is None: # option was invalid
+                break
+            else:
                 acts.append(action)
                 ob, re, done = self.step(acts[-1],sebango)
                 rew.append(re)

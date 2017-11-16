@@ -25,13 +25,10 @@ agent_smdp   = SmdpAgent_Q(env,q_func,options)
 #training
 max_options = 200
 iterations, epsilon, gamma, alpha = util.learning_parameters()
-iterations=10000
 #alpha       = 1./16. # overwrite to match Sutton
 report_freq = iterations/100
 hist = np.zeros((iterations,7)) #training step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_successrate, avg_greedy_steps, avg_greedy_choices
 start_time = time.time()
-
-interruptions = 0
 
 for itr in range(iterations):
     tot_td = 0
@@ -58,12 +55,14 @@ for itr in range(iterations):
                 if done: # episode is done, so time to leave the option loop
                     switch = True
                 else: # if not done, decide whether or not to switch
-                    current_best_opt = agent_smdp.pick_option_greedy_epsilon(states[-1], eps=0.2)
+                    qs = agent_smdp.q_func(states[-1])
+                    if qs[opt.identifier]<np.max(qs):
+                    #current_best_opt = agent_smdp.pick_option_greedy_epsilon(states[-1], eps=epsilon)
                     # TODO: Add a margin so it doesn't get too trigger happy?
-                    if current_best_opt!=opt:
-                        if itr > 50:
-                            interruptions += 1
-                            switch = True
+                    # TODO: Switch QTable over to numpy?!?!?!?!
+                    #if current_best_opt!=opt:
+                        #if itr > 50:
+                        switch = True
         next_state = states[-1]
         if len(states)==1: # this happens if option was chosen in its termination state
             tdes = [0.] # no update
@@ -84,8 +83,6 @@ for itr in range(iterations):
     
     if itr % report_freq == 0: # evaluation
         print("Itr %i # Average reward: %.2f" % (itr, hist[itr,3]))
-        print("  (interruptions in training: {})".format(interruptions))
-        interruptions = 0
 
 print("DONE. ({} seconds elapsed)".format(time.time()-start_time))
 util.plot_and_pickle(env,agent_smdp,hist)

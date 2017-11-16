@@ -305,9 +305,9 @@ def switching_greedy_eval(agent, gamma, max_options, evals=100):
                         switch = True
                         reward_record.append(rewards)
                     else: # if not done, decide whether or not to switch
-                        current_best_opt = agent.pick_option_greedy_epsilon(prev_state, eps=0.0)
+                        qs = agent.q_func(prev_state)
+                        if qs[opt.identifier]<np.max(qs):
                         # TODO: Add a margin so it doesn't get too trigger happy?
-                        if current_best_opt!=opt:
                             switch = True
                             reward_record.append(rewards)
             if done:
