@@ -16,13 +16,13 @@ import learning_test_utilities as util
 env          = RoomWorld()
 state_space  = env.state_space
 num_actions  = env.action_space.size
-q_func       = util.QTable(state_space,num_actions)
+q_func       = util.QTable_Numpy(env.walkability_map.shape,num_actions) #according to single test, Numpy version is 2.7x faster
 agent_q      = Agent_Q(env,q_func)
 cur_state    = env.reset(random_placement=True)
 #training
 max_steps  = 1000
 iterations, epsilon, gamma, alpha = util.learning_parameters()
-report_freq = iterations/50
+report_freq = iterations/10
 hist = np.zeros((iterations,7)) #training step, avg_td, avg_ret, avg_greedy_ret, avg_greedy_successrate, avg_greedy_steps, avg_greedy_choices
 start_time = time.time()
 
