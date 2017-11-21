@@ -350,7 +350,7 @@ def switching_greedy_eval(agent, gamma, max_options, evals=100):
 
 def arrayify_q(q_func,walkability):
     if isinstance(q_func.table, np.ndarray):
-        return q_func
+        return q_func.table
     # Put the q-function into an array
     h,w = walkability.shape
     Q = np.zeros((h,w,q_func.num_actions))
